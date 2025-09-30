@@ -4,7 +4,19 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Middleware - ДОЛЖНО БЫТЬ ПЕРВЫМ!
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'https://site-vxvx.onrender.com');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    next();
+});
+
 app.use(express.static('public'));
 app.use(express.json({ limit: '100mb' }));
 app.use(fileUpload({
@@ -12,19 +24,10 @@ app.use(fileUpload({
     createParentPath: true
 }));
 
-// CORS
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', '*');
-    next();
-});
-
-// Главная страница
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ЗАГРУЗКА ВИДЕО - РАБОЧАЯ ВЕРСИЯ
 app.post('/api/upload', (req, res) => {
     try {
         if (!req.files || !req.files.video) {
@@ -34,28 +37,17 @@ app.post('/api/upload', (req, res) => {
         const video = req.files.video;
         console.log('📹 Uploading video:', video.name, video.size);
         
-        // ВОЗВРАЩАЕМ УСПЕХ БЕЗ СОХРАНЕНИЯ
         res.json({ 
             success: true, 
-            message: 'Video received successfully!',
+            message: 'Video uploaded successfully! 🎬',
             filename: video.name,
-            size: video.size,
-            mimetype: video.mimetype
+            size: video.size
         });
 
     } catch (error) {
         console.error('Upload error:', error);
         res.json({ success: false, error: error.message });
     }
-});
-
-// Health check
-app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
-        service: 'Video Editor',
-        timestamp: new Date().toISOString() 
-    });
 });
 
 app.listen(PORT, () => {

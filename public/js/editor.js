@@ -1,5 +1,4 @@
 let currentVideo = null;
-let uploadedFile = null;
 
 // Элементы DOM
 const uploadArea = document.getElementById('uploadArea');
@@ -8,89 +7,77 @@ const previewSection = document.getElementById('previewSection');
 const previewVideo = document.getElementById('previewVideo');
 const loadingSection = document.getElementById('loadingSection');
 
-// Обработчики drag & drop
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    uploadArea.addEventListener(eventName, preventDefaults, false);
-});
-
-function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-}
-
-['dragenter', 'dragover'].forEach(eventName => {
-    uploadArea.addEventListener(eventName, () => uploadArea.style.borderColor = '#4361ee', false);
-});
-
-['dragleave', 'drop'].forEach(eventName => {
-    uploadArea.addEventListener(eventName, () => uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)', false);
-});
-
-uploadArea.addEventListener('drop', handleDrop, false);
-
-function handleDrop(e) {
-    const dt = e.dataTransfer;
-    const files = dt.files;
-    handleFiles(files);
+// Дебаг функция
+function debug(message) {
+    console.log('🔧 DEBUG:', message);
+    alert('🔧 ' + message); // Показываем всплывающее окно
 }
 
 // Обработчик выбора файла
 fileInput.addEventListener('change', function() {
+    debug('Файл выбран в input');
     handleFiles(this.files);
 });
 
 function handleFiles(files) {
+    debug('Обрабатываем файлы: ' + files.length);
+    
     if (files.length > 0) {
         const file = files[0];
+        debug('Файл: ' + file.name + ' (' + file.type + ')');
         
-        // Проверяем что это видео
         if (!file.type.startsWith('video/')) {
-            alert('Пожалуйста, выберите видеофайл (MP4, WebM, MOV)');
+            alert('❌ Это не видео файл!');
             return;
         }
         
-        // Проверяем размер
-        if (file.size > 500 * 1024 * 1024) {
-            alert('Файл слишком большой. Максимальный размер: 500MB');
+        if (file.size > 100 * 1024 * 1024) {
+            alert('❌ Файл слишком большой! Макс: 100MB');
             return;
         }
-        
-        uploadedFile = file;
         
         // Показываем локальное превью
+        debug('Создаем превью...');
         const url = URL.createObjectURL(file);
         previewVideo.src = url;
         previewSection.style.display = 'block';
         uploadArea.style.display = 'none';
         
-        // Автозагрузка на сервер
+        // Пробуем загрузить на сервер
+        debug('Пробуем загрузить на сервер...');
         uploadToServer(file);
     }
 }
 
 async function uploadToServer(file) {
+    debug('Начинаем загрузку на сервер...');
     loadingSection.style.display = 'block';
     
     const formData = new FormData();
     formData.append('video', file);
     
     try {
+        debug('Отправляем fetch запрос...');
+        
         const response = await fetch('/api/upload', {
             method: 'POST',
             body: formData
         });
         
+        debug('Получили ответ: ' + response.status);
+        
         const data = await response.json();
+        debug('Данные ответа: ' + JSON.stringify(data));
         
         if (data.success) {
             currentVideo = data;
-            showNotification('✅ Видео успешно загружено!', 'success');
+            alert('✅ ' + data.message);
         } else {
             throw new Error(data.error);
         }
     } catch (error) {
-        console.error('Upload error:', error);
-        showNotification('❌ Ошибка загрузки: ' + error.message, 'error');
+        debug('❌ Ошибка: ' + error.message);
+        alert('❌ Ошибка загрузки: ' + error.message);
     } finally {
         loadingSection.style.display = 'none';
     }
@@ -98,35 +85,12 @@ async function uploadToServer(file) {
 
 function clearVideo() {
     currentVideo = null;
-    uploadedFile = null;
     previewVideo.src = '';
     previewSection.style.display = 'none';
     uploadArea.style.display = 'block';
     fileInput.value = '';
-    
-    if (previewVideo.src) {
-        URL.revokeObjectURL(previewVideo.src);
-    }
+    debug('Видео очищено');
 }
 
-function openEditor() {
-    if (!currentVideo) {
-        alert('Сначала загрузите видео');
-        return;
-    }
-    
-    // Переход на страницу редактора
-    window.location.href = `/editor.html?video=${currentVideo.filename}`;
-}
-
-function showNotification(message, type) {
-    // Простое уведомление
-    alert(message);
-}
-
-// Автоочистка при закрытии страницы
-window.addEventListener('beforeunload', () => {
-    if (previewVideo.src && previewVideo.src.startsWith('blob:')) {
-        URL.revokeObjectURL(previewVideo.src);
-    }
-});
+// Инициализация
+debug('Страница загружена!');
