@@ -1,0 +1,25 @@
+{
+  "name": "video-editor",
+  "version": "1.0.0",
+  "description": "Online Video Editor",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo 'Build complete'"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "express-fileupload": "^1.5.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "video",
+    "editor",
+    "online"
+  ],
+  "author": "Video Editor",
+  "license": "MIT"
+}
