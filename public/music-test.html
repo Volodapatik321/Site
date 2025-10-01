@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Test - Android 15</title>
+    <style>
+        body { padding: 20px; font-family: Arial; background: #1a1a2e; color: white; }
+        .test-case { 
+            background: #4361ee; padding: 15px; margin: 10px 0; 
+            border-radius: 10px;
+        }
+        .btn { 
+            background: #10b981; color: white; padding: 15px; 
+            border: none; border-radius: 8px; width: 100%; margin: 5px 0;
+            font-size: 16px;
+        }
+        .result { 
+            padding: 10px; margin: 5px 0; 
+            border-radius: 5px; background: #2d3748;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎵 Music File Test - Android 15</h1>
+    <p>Проверим что работает с музыкой:</p>
+    
+    <div class="test-case">
+        <h3>🎤 1. Запись аудио с микрофона</h3>
+        <input type="file" accept="audio/*" capture="user" id="recordAudio" style="display: none;">
+        <button class="btn" onclick="document.getElementById('recordAudio').click()">
+            🎤 Записать аудио
+        </button>
+        <div id="result1" class="result">Ожидание...</div>
+    </div>
+    
+    <div class="test-case">
+        <h3>📁 2. Выбор аудио файла</h3>
+        <input type="file" accept="audio/*" id="selectAudio" style="display: none;">
+        <button class="btn" onclick="document.getElementById('selectAudio').click()">
+            🗂 Выбрать музыку
+        </button>
+        <div id="result2" class="result">Ожидание...</div>
+    </div>
+    
+    <div class="test-case">
+        <h3>🎵 3. Выбор любого файла</h3>
+        <input type="file" accept="*/*" id="selectAny" style="display: none;">
+        <button class="btn" onclick="document.getElementById('selectAny').click()">
+            📎 Выбрать любой файл
+        </button>
+        <div id="result3" class="result">Ожидание...</div>
+    </div>
+    
+    <div class="test-case">
+        <h3>🌐 4. Загрузка по ссылке</h3>
+        <input type="url" id="audioUrl" placeholder="https://example.com/music.mp3" style="width: 100%; padding: 10px; margin: 5px 0;">
+        <button class="btn" onclick="testUrl()">📥 Загрузить по ссылке</button>
+        <div id="result4" class="result">Ожидание...</div>
+    </div>
+
+    <audio id="audioPlayer" controls style="width: 100%; margin-top: 20px; display: none;"></audio>
+    <div id="fileInfo" style="padding: 15px; margin: 15px 0; background: #16213e; border-radius: 10px;"></div>
+
+    <script>
+        function updateResult(id, message, success) {
+            const element = document.getElementById(id);
+            element.innerHTML = message;
+            element.style.background = success ? '#059669' : '#dc2626';
+        }
+        
+        function showFileInfo(file) {
+            const info = document.getElementById('fileInfo');
+            const audio = document.getElementById('audioPlayer');
+            
+            if (file) {
+                info.innerHTML = `
+                    <strong>📁 Файл:</strong> ${file.name}<br>
+                    <strong>📦 Тип:</strong> ${file.type}<br>
+                    <strong>💾 Размер:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+                    <strong>✅ Статус:</strong> Файл доступен!
+                `;
+                
+                // Пробуем воспроизвести
+                const url = URL.createObjectURL(file);
+                audio.src = url;
+                audio.style.display = 'block';
+                
+                updateResult('fileInfo', '✅ Аудио готово к воспроизведению!', true);
+            }
+        }
+        
+        // Тест 1: Запись аудио
+        document.getElementById('recordAudio').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                updateResult('result1', '✅ Запись аудио работает!', true);
+                showFileInfo(file);
+            } else {
+                updateResult('result1', '❌ Запись аудио не работает', false);
+            }
+        });
+        
+        // Тест 2: Выбор аудио
+        document.getElementById('selectAudio').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                updateResult('result2', '✅ Выбор аудио файлов работает!', true);
+                showFileInfo(file);
+            } else {
+                updateResult('result2', '❌ Выбор аудио не работает', false);
+            }
+        });
+        
+        // Тест 3: Выбор любого файла
+        document.getElementById('selectAny').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                updateResult('result3', `✅ Выбор файлов работает! Тип: ${file.type}`, true);
+                showFileInfo(file);
+            } else {
+                updateResult('result3', '❌ Выбор файлов не работает', false);
+            }
+        });
+        
+        // Тест 4: Загрузка по ссылке
+        function testUrl() {
+            const url = document.getElementById('audioUrl').value;
+            if (url) {
+                const audio = document.getElementById('audioPlayer');
+                audio.src = url;
+                audio.style.display = 'block';
+                updateResult('result4', '✅ Пробуем загрузить по ссылке...', true);
+                
+                audio.addEventListener('canplay', function() {
+                    updateResult('result4', '✅ Аудио по ссылке работает!', true);
+                });
+                
+                audio.addEventListener('error', function() {
+                    updateResult('result4', '❌ Ошибка загрузки аудио', false);
+                });
+            }
+        }
+        
+        // Стартовое сообщение
+        updateResult('fileInfo', 'Выберите способ загрузки для теста', true);
+    </script>
+</body>
+</html>
